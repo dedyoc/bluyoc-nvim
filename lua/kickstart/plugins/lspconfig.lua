@@ -117,7 +117,7 @@ return {
           --
           -- When you move your cursor, the highlights will be cleared (the second autocommand).
           local client = vim.lsp.get_client_by_id(event.data.client_id)
-          if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
+          if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
             local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
             vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
               buffer = event.buf,
@@ -144,7 +144,7 @@ return {
           -- code, if the language server you are using supports them
           --
           -- This may be unwanted, since they displace some of your code
-          if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
+          if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
             map('<leader>th', function()
               vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
             end, '[T]oggle Inlay [H]ints')
@@ -153,14 +153,46 @@ return {
       })
 
       -- Change diagnostic symbols in the sign column (gutter)
-      -- if vim.g.have_nerd_font then
-      --   local signs = { ERROR = '', WARN = '', INFO = '', HINT = '' }
-      --   local diagnostic_signs = {}
-      --   for type, icon in pairs(signs) do
-      --     diagnostic_signs[vim.diagnostic.severity[type]] = icon
-      --   end
-      --   vim.diagnostic.config { signs = { text = diagnostic_signs } }
-      -- end
+      -- Uncomments and enhances the diagnostic configuration.
+      local signs_text_map = {}
+      if vim.g.have_nerd_font then
+        signs_text_map = {
+          Error = '', -- Nerd Font icon for Error
+          Warn  = '', -- Nerd Font icon for Warn
+          Info  = '', -- Nerd Font icon for Info
+          Hint  = '', -- Nerd Font icon for Hint
+        }
+      else
+        signs_text_map = { Error = 'E', Warn = 'W', Info = 'I', Hint = 'H' }
+      end
+
+      vim.diagnostic.config({
+        signs = {
+          text = signs_text_map, -- Use custom text for signs
+          -- You can also configure highlighting for sign number and line here if needed
+          -- e.g., numhl = { Error = "DiagnosticSignErrorNr", Warn = "DiagnosticSignWarnNr", ... }
+          -- e.g., linehl = { Error = "DiagnosticSignErrorLine", Warn = "DiagnosticSignWarnLine", ... }
+        },
+        virtual_text = false, -- Disable virtual text by default
+        -- To enable virtual text, set to true or a configuration table, e.g.:
+        -- virtual_text = {
+        --   prefix = '●', -- Character to prefix virtual text
+        --   spacing = 4, -- Amount of space to insert before virtual text
+        --   source = 'if_many', -- Show source only if multiple diagnostic sources exist
+        --   severity_limit = vim.diagnostic.severity.WARN, -- Only show virtual text for warnings and errors
+        -- },
+        underline = true, -- Underline diagnostics
+        update_in_insert = false, -- Do not update diagnostics in insert mode (improves performance)
+        severity_sort = true, -- Sort diagnostics by severity
+        float = { -- Configuration for the diagnostic floating window
+          focusable = false, -- Make the float window not focusable
+          style = 'minimal', -- Use a minimal style for the float
+          border = 'rounded', -- Use a rounded border
+          source = 'always', -- Always show the source of the diagnostic (e.g., "luacheck")
+          header = '', -- Remove header like "1 Error"
+          prefix = '', -- Remove prefix like "LSP"
+        },
+      })
 
       -- LSP servers and clients are able to communicate to each other what features they support.
       --  By default, Neovim doesn't support everything that is in the LSP specification.

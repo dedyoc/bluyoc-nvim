@@ -22,6 +22,8 @@ vim.opt.showmode = false
 vim.schedule(function()
   vim.opt.clipboard = 'unnamedplus'
 end)
+-- Enable detection of file changes
+vim.opt.autoread = true
 
 -- Enable break indent
 vim.opt.breakindent = true
@@ -60,5 +62,8 @@ vim.opt.cursorline = true
 
 -- Minimal number of screen lines to keep above and below the cursor.
 vim.opt.scrolloff = 10
+
+-- Remove e37 and e162, which force you to force when not saving changes
+vim.opt.confirm = true
 
 -- vim: ts=2 sts=2 sw=2 et
